@@ -40,7 +40,7 @@ public class DynamicDispatchRAMSimulate {
         return getRandom(1, 10);
     }
 
-    //[begin, end]
+    // [begin, end]
     private static int getRandom(int begin, int end) {
         double segment = 1.0 / (1 + end - begin);
         return begin + (int) (Math.random() / segment);
