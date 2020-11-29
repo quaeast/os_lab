@@ -70,6 +70,7 @@ public class DynamicDispatchRAMSimulate {
         return jobList;
     }
 
+    // format: address(length)
     public static void showJobList(List<Job> jobList) {
         for (Job i : jobList) {
             System.out.printf("%s: %d(%s), ", i.getName(), i.getAddress(), i.getNeedMemory());
@@ -77,6 +78,7 @@ public class DynamicDispatchRAMSimulate {
         System.out.println();
     }
 
+    // format: [begin ~ end] for allocated, |begin ~ end| for freed
     public static void showMemoryList(List<MemoryBlock> memoryBlockList) {
         for (MemoryBlock i : memoryBlockList) {
             if (i.getFlag() == 0) {
