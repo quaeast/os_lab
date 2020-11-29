@@ -1,4 +1,3 @@
-import com.sun.tools.internal.ws.wsdl.document.soap.SOAPUse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -66,25 +65,23 @@ public class DynamicDispatchRAMSimulate {
     public static List<Job> initJobs(int jobNum, int memoryLength) {
         List<Job> jobList = new ArrayList<Job>();
         for (int i = 0; i < jobNum; i++) {
-            jobList.add(new Job("job " + i, 0, getRandom(1, memoryLength), -1));
+            jobList.add(new Job("job " + i, 0, getRandom(1, 256), -1));
         }
         return jobList;
     }
 
     public static void showJobList(List<Job> jobList) {
         for (Job i : jobList) {
-            if (i.getStatus() == 0) {
-                System.out.print(i.getName() + ": " + i.getAddress() + "Byte, ");
-            }
+            System.out.printf("%s: %d(%s), ", i.getName(), i.getAddress(), i.getNeedMemory());
         }
         System.out.println();
     }
 
-    public static void showMemoryList(List<MemoryBlock> memoryBlockList){
-        for (MemoryBlock i:memoryBlockList){
-            if (i.getFlag()==0){
-                System.out.print("|"+i.getAddress() + " ~ " + (i.getAddress() + i.getLength() - 1)+"|");
-            }else {
+    public static void showMemoryList(List<MemoryBlock> memoryBlockList) {
+        for (MemoryBlock i : memoryBlockList) {
+            if (i.getFlag() == 0) {
+                System.out.print("|" + i.getAddress() + " ~ " + (i.getAddress() + i.getLength() - 1) + "|");
+            } else {
                 System.out.print("[" + i.getAddress() + " ~ " + (i.getAddress() + i.getLength() - 1) + "]");
             }
         }
@@ -110,31 +107,31 @@ public class DynamicDispatchRAMSimulate {
     public static boolean allocate(List<MemoryBlock> memoryBlockList, Job job, int allocatePosition) {
         MemoryBlock allocateBlock = memoryBlockList.get(allocatePosition);
         job.setAddress(allocateBlock.getAddress());
+        allocateBlock.setFlag(1);
         if (allocateBlock.getLength() == job.getNeedMemory()) {
-            allocateBlock.setFlag(1);
+            return true;
         } else if (allocateBlock.getLength() > job.getNeedMemory()) {
             MemoryBlock remainBlock = new MemoryBlock(
                     allocateBlock.getAddress() + job.getNeedMemory(),
                     allocateBlock.getLength() - job.getNeedMemory(),
                     0);
-            memoryBlockList.add(allocatePosition+1, remainBlock);
+            allocateBlock.setLength(job.getNeedMemory());
+            memoryBlockList.add(allocatePosition + 1, remainBlock);
+            return true;
         } else {
             return false;
         }
-        return true;
     }
 
-
-
     public static boolean free(List<MemoryBlock> memoryBlockList, Job job) {
-        int position=-1;
-        for (int i=0; i<memoryBlockList.size();i++){
-            if (job.getAddress()==memoryBlockList.get(i).getAddress()){
+        int position = -1;
+        for (int i = 0; i < memoryBlockList.size(); i++) {
+            if (job.getAddress() == memoryBlockList.get(i).getAddress()) {
                 position = i;
                 break;
             }
         }
-        if (position==-1){
+        if (position == -1) {
             return false;
         }
 
@@ -166,9 +163,9 @@ public class DynamicDispatchRAMSimulate {
             int cursor = 0;
             for (int i = 0; i < waitingJobs.size(); ) {
                 int backCursor = FFLocate(memoryBlockList, waitingJobs.get(i), cursor);
-                if (backCursor==-1){
+                if (backCursor == -1) {
                     i++;
-                }else {
+                } else {
                     allocate(memoryBlockList, waitingJobs.get(i), backCursor);
                     cursor = ++backCursor;
                     runningJobs.add(waitingJobs.get(i));
@@ -183,17 +180,22 @@ public class DynamicDispatchRAMSimulate {
             showJobList(waitingJobs);
             System.out.println("over jobs: ");
             showJobList(overJobs);
+
+            System.out.println("pre running RAM");
             showMemoryList(memoryBlockList);
 
-            for (int i=0; i<runningJobs.size();i++){
-                if (getRandom()==1){
+            for (int i = 0; i < runningJobs.size(); ) {
+                if (getRandom() == 1) {
                     free(memoryBlockList, runningJobs.get(i));
                     overJobs.add(runningJobs.get(i));
                     runningJobs.remove(i);
-                }else {
+                } else {
                     i++;
                 }
             }
+
+            System.out.println("post running RAM");
+            showMemoryList(memoryBlockList);
         }
     }
 
