@@ -30,7 +30,7 @@
                         <configuration>
                             <classifier>spring-boot</classifier>
                             <mainClass>
-                                cn.quaeast.Main
+                                ProcessSimulate
                             </mainClass>
                         </configuration>
                     </execution>

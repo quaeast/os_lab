@@ -45,10 +45,22 @@ public class DynamicDispatchRAMSimulate {
         return begin + (int) (Math.random() / segment);
     }
 
+    // default for
     public static List<MemoryBlock> initMemoryBlocks(int memoryBlockLength, int memoryLength) {
         List<MemoryBlock> memoryBlockList = new ArrayList<MemoryBlock>();
-        for ()
+        int initialDenominator = 512;
+        for (int i = 0, addressTemp = 0; i < memoryBlockLength; i++) {
+            int currentBlockLength = memoryLength / initialDenominator;
+            memoryBlockList.add(new MemoryBlock(addressTemp, currentBlockLength, 0));
+            addressTemp += currentBlockLength;
+            initialDenominator /= 2;
+        }
         return memoryBlockList;
+    }
+
+    public static List<Job> initJobs(int jobNum) {
+        List<Job> jobList = new ArrayList<Job>();
+
     }
 
     public static void main(String[] args) {
