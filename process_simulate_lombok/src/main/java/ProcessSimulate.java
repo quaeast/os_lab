@@ -21,7 +21,7 @@ class PCB {
 
 @FunctionalInterface
 interface ProcessSchedulePickMechanism {
-   public int pick(List<PCB> readyList);
+    public int pick(List<PCB> readyList);
 }
 
 
@@ -92,10 +92,33 @@ public class ProcessSimulate {
     }
 
     public static int FIFOPick(List<PCB> readyList) {
-        if (readyList.isEmpty()) {
+        if (readyList.isEmpty())
             return -1;
-        }
         return 0;
+    }
+
+    public static int PriorityPick(List<PCB> readyList) {
+        int maxPriority = -1;
+        int resultPosition = -1;
+        for (int i = 0; i < readyList.size(); i++) {
+            if (readyList.get(i).getPriority() > maxPriority) {
+                maxPriority = readyList.get(i).getPriority();
+                resultPosition = i;
+            }
+        }
+        return resultPosition;
+    }
+
+    public static int LongestTimePick(List<PCB> readyList) {
+        int longestTime = -1;
+        int resultPosition = -1;
+        for (int i=0; i<readyList.size();i++){
+            if (readyList.get(i).getTime()>longestTime){
+                longestTime = readyList.get(i).getPriority();
+                resultPosition = i;
+            }
+        }
+        return longestTime;
     }
 
     public static void simulateContainer(List<PCB> pcbList, ProcessSchedulePickMechanism processSchedulePickMechanism) {
