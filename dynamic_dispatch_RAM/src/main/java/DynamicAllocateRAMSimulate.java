@@ -30,11 +30,16 @@ class Job {
 }
 
 @FunctionalInterface
-interface RamDispatchAlgorithm {
+interface RamAllocateLocator {
+    public int locator(List<MemoryBlock> memoryBlockList, Job job, int cursor);
+}
+
+@FunctionalInterface
+interface RamAllocateAlgorithm {
     public void dispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs);
 }
 
-public class DynamicDispatchRAMSimulate {
+public class DynamicAllocateRAMSimulate {
     // [0, 1]
     private static int getRandom() {
         return getRandom(0, 1);
@@ -95,7 +100,7 @@ public class DynamicDispatchRAMSimulate {
         System.out.println();
     }
 
-
+    // allocate a memory block list to a job, and reconstruct the memoryBlockList
     public static boolean allocate(List<MemoryBlock> memoryBlockList, Job job, int allocatePosition) {
         MemoryBlock allocateBlock = memoryBlockList.get(allocatePosition);
         job.setAddress(allocateBlock.getAddress());
@@ -157,9 +162,8 @@ public class DynamicDispatchRAMSimulate {
         }
     }
 
-    // FF denote for first fit
     // return cursor, -1 for fail
-    public static int FFLocate(List<MemoryBlock> memoryBlockList, Job job, int cursor) {
+    public static int firstFitLocator(List<MemoryBlock> memoryBlockList, Job job, int cursor) {
         int currentCursor = cursor;
         int initialCursor = cursor;
         while (true) {
@@ -175,14 +179,42 @@ public class DynamicDispatchRAMSimulate {
         }
     }
 
+    public static int bestFitLocator(List<MemoryBlock> memoryBlockList, Job job, int cursor) {
+        int minRemain = Integer.MAX_VALUE;
+        int resultPosition = -1;
+        for (int i = 0; i < memoryBlockList.size(); i++) {
+            if (memoryBlockList.get(i).getLength()>=job.getNeedMemory()){
+                if (memoryBlockList.get(i).getLength()-job.getNeedMemory()<minRemain){
+                    minRemain =memoryBlockList.get(i).getLength()-job.getNeedMemory();
+                    resultPosition = i;
+                }
+            }
+        }
+        return resultPosition;
+    }
+
+    public static int worstFitLocator(List<MemoryBlock> memoryBlockList, Job job, int cursor){
+        int maxRemain = -1;
+        int resultPosition = -1;
+        for (int i = 0; i < memoryBlockList.size(); i++) {
+            if (memoryBlockList.get(i).getLength()>=job.getNeedMemory()){
+                if (memoryBlockList.get(i).getLength()-job.getNeedMemory()>maxRemain){
+                    maxRemain =memoryBlockList.get(i).getLength()-job.getNeedMemory();
+                    resultPosition = i;
+                }
+            }
+        }
+        return resultPosition;
+    }
+
     /*
     in fact this method is also decoupled from specific algorithm.
     Other algorithms don't care about the former cursor, that's the only difference.
      */
-    public static void FFDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs) {
+    public static void RamDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs, RamAllocateLocator ramAllocateLocator) {
         int cursor = 0;
         for (int i = 0; i < waitingJobs.size(); ) {
-            int backCursor = FFLocate(memoryBlockList, waitingJobs.get(i), cursor);
+            int backCursor = ramAllocateLocator.locator(memoryBlockList, waitingJobs.get(i), cursor);
             if (backCursor == -1) {
                 i++;
             } else {
@@ -194,17 +226,29 @@ public class DynamicDispatchRAMSimulate {
         }
     }
 
+    public static void firstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
+        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::firstFitLocator);
+    }
+
+    public static void bestFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
+        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::bestFitLocator);
+    }
+
+    public static void worstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
+        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::worstFitLocator);
+    }
+
     /*
     this method's former name is FF, but I think it has decoupled from dispatch algorithm,
     so i rename it as simulateContainer
      */
-    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList, RamDispatchAlgorithm ramDispatchAlgorithm) {
+    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList, RamAllocateAlgorithm ramAllocateAlgorithm) {
         int totalJobNum = jobList.size();
         List<Job> runningJobs = new ArrayList<Job>();
         List<Job> overJobs = new ArrayList<Job>();
         List<Job> waitingJobs = jobList;
         while (overJobs.size() < totalJobNum) {
-            ramDispatchAlgorithm.dispatch(memoryBlockList, waitingJobs, runningJobs);
+            ramAllocateAlgorithm.dispatch(memoryBlockList, waitingJobs, runningJobs);
 
             System.out.println("***************************************");
             System.out.println("running jobs: ");
@@ -228,6 +272,8 @@ public class DynamicDispatchRAMSimulate {
     public static void main(String[] args) {
         List<MemoryBlock> memoryBlockList = initMemoryBlocks(10, 1024);
         List<Job> jobList = initJobs(10, 1024);
-        simulateContainer(memoryBlockList, jobList, DynamicDispatchRAMSimulate::FFDispatch);
+//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitAllocate);
+//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::bestFitAllocate);
+        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitAllocate);
     }
 }
