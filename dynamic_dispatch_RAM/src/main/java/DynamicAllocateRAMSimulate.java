@@ -34,10 +34,6 @@ interface RamAllocateLocator {
     public int locator(List<MemoryBlock> memoryBlockList, Job job, int cursor);
 }
 
-@FunctionalInterface
-interface RamAllocateAlgorithm {
-    public void dispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs);
-}
 
 public class DynamicAllocateRAMSimulate {
     // [0, 1]
@@ -227,30 +223,17 @@ public class DynamicAllocateRAMSimulate {
         }
     }
 
-    public static void firstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::firstFitLocator);
-    }
-
-    public static void bestFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::bestFitLocator);
-    }
-
-    public static void worstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::worstFitLocator);
-    }
-
     /*
     this method's former name is FF, but I think it has decoupled from dispatch algorithm,
     so i rename it as simulateContainer
      */
-    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList, RamAllocateAlgorithm ramAllocateAlgorithm) {
+    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList, RamAllocateLocator ramAllocateLocator) {
         int totalJobNum = jobList.size();
         List<Job> runningJobs = new ArrayList<Job>();
         List<Job> overJobs = new ArrayList<Job>();
         List<Job> waitingJobs = jobList;
         while (overJobs.size() < totalJobNum) {
-            ramAllocateAlgorithm.dispatch(memoryBlockList, waitingJobs, runningJobs);
-
+            RamAllocate(memoryBlockList, waitingJobs, runningJobs, ramAllocateLocator::locator);
             System.out.println("***************************************");
             System.out.println("running jobs: ");
             showJobList(runningJobs);
@@ -273,8 +256,8 @@ public class DynamicAllocateRAMSimulate {
     public static void main(String[] args) {
         List<MemoryBlock> memoryBlockList = initMemoryBlocks(10, 1024);
         List<Job> jobList = initJobs(10, 1024);
-//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitAllocate);
-//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::bestFitAllocate);
-        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::worstFitAllocate);
+//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitLocator);
+//        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::bestFitLocator);
+        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::worstFitLocator);
     }
 }
