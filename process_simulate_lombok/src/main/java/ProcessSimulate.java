@@ -118,7 +118,7 @@ public class ProcessSimulate {
                 resultPosition = i;
             }
         }
-        return longestTime;
+        return resultPosition;
     }
 
     public static void simulateContainer(List<PCB> pcbList, ProcessSchedulePickMechanism processSchedulePickMechanism) {
@@ -164,6 +164,8 @@ public class ProcessSimulate {
 
     public static void main(String[] args) {
         List<PCB> pcbList = init(10);
-        simulateContainer(pcbList, ProcessSimulate::FIFOPick);
+//        simulateContainer(pcbList, ProcessSimulate::FIFOPick);
+//        simulateContainer(pcbList, ProcessSimulate::LongestTimePick);
+        simulateContainer(pcbList, ProcessSimulate::PriorityPick);
     }
 }
