@@ -228,15 +228,15 @@ public class DynamicAllocateRAMSimulate {
     }
 
     public static void firstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::firstFitLocator);
+        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::firstFitLocator);
     }
 
     public static void bestFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::bestFitLocator);
+        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::bestFitLocator);
     }
 
     public static void worstFitAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs){
-        RamDispatch(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::worstFitLocator);
+        RamAllocate(memoryBlockList, waitingJobs, runningJobs, DynamicAllocateRAMSimulate::worstFitLocator);
     }
 
     /*
