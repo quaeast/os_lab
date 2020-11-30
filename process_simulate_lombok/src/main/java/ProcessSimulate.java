@@ -20,7 +20,7 @@ class PCB {
 
 
 @FunctionalInterface
-interface ProcessScheduleAlgorithm {
+interface ProcessSchedulePickMechanism {
    public int pick(List<PCB> readyList);
 }
 
@@ -98,7 +98,7 @@ public class ProcessSimulate {
         return 0;
     }
 
-    public static void simulateContainer(List<PCB> pcbList, ProcessScheduleAlgorithm processScheduleAlgorithm) {
+    public static void simulateContainer(List<PCB> pcbList, ProcessSchedulePickMechanism processSchedulePickMechanism) {
         List<PCB> readyList = new ArrayList<PCB>();
         List<PCB> waitList = new ArrayList<PCB>();
         List<PCB> overList = new ArrayList<PCB>();
@@ -118,13 +118,13 @@ public class ProcessSimulate {
             System.out.println("over list: ");
             showPcbList(overList);
             if (readyList.size() != 0) {
-                int position = processScheduleAlgorithm.pick(readyList);
+                int position = processSchedulePickMechanism.pick(readyList);
                 PCB runningPrecess = readyList.get(position);
                 runProcess(runningPrecess);
                 if (runningPrecess.getStatus() == 9) {
                     System.out.println(runningPrecess.getName() + " is over");
                     overList.add(runningPrecess);
-                    readyList.remove(0);
+                    readyList.remove(position);
                 }
             }
             regenerateStatus(readyList, waitList);
