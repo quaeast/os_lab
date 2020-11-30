@@ -65,7 +65,7 @@ public class DynamicDispatchRAMSimulate {
     public static List<Job> initJobs(int jobNum, int memoryLength) {
         List<Job> jobList = new ArrayList<Job>();
         for (int i = 0; i < jobNum; i++) {
-            jobList.add(new Job("job " + i, 0,memoryLength/2, -1));
+            jobList.add(new Job("job " + i, 0, memoryLength / 2, -1));
         }
         return jobList;
     }
@@ -170,6 +170,10 @@ public class DynamicDispatchRAMSimulate {
         }
     }
 
+    /*
+    in fact this method is also decouple from specific algorithm.
+    Other algorithms don't care about the former cursor, that's the only different.
+     */
     public static void FFDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs) {
         int cursor = 0;
         for (int i = 0; i < waitingJobs.size(); ) {
