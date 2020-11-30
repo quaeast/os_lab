@@ -29,6 +29,11 @@ class Job {
     private int address;
 }
 
+@FunctionalInterface
+interface RamDispatchAlgorithm {
+    public void dispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs);
+}
+
 public class DynamicDispatchRAMSimulate {
     // [0, 1]
     private static int getRandom() {
@@ -171,8 +176,8 @@ public class DynamicDispatchRAMSimulate {
     }
 
     /*
-    in fact this method is also decouple from specific algorithm.
-    Other algorithms don't care about the former cursor, that's the only different.
+    in fact this method is also decoupled from specific algorithm.
+    Other algorithms don't care about the former cursor, that's the only difference.
      */
     public static void FFDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs) {
         int cursor = 0;
@@ -193,13 +198,13 @@ public class DynamicDispatchRAMSimulate {
     this method's former name is FF, but I think it has decoupled from dispatch algorithm,
     so i rename it as simulateContainer
      */
-    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList) {
+    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList, RamDispatchAlgorithm ramDispatchAlgorithm) {
         int totalJobNum = jobList.size();
         List<Job> runningJobs = new ArrayList<Job>();
         List<Job> overJobs = new ArrayList<Job>();
         List<Job> waitingJobs = jobList;
         while (overJobs.size() < totalJobNum) {
-            FFDispatch(memoryBlockList, waitingJobs, runningJobs);
+            ramDispatchAlgorithm.dispatch(memoryBlockList, waitingJobs, runningJobs);
 
             System.out.println("***************************************");
             System.out.println("running jobs: ");
@@ -223,6 +228,6 @@ public class DynamicDispatchRAMSimulate {
     public static void main(String[] args) {
         List<MemoryBlock> memoryBlockList = initMemoryBlocks(10, 1024);
         List<Job> jobList = initJobs(10, 1024);
-        simulateContainer(memoryBlockList, jobList);
+        simulateContainer(memoryBlockList, jobList, DynamicDispatchRAMSimulate::FFDispatch);
     }
 }

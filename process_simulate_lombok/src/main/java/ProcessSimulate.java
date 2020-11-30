@@ -19,6 +19,12 @@ class PCB {
 }
 
 
+@FunctionalInterface
+interface ProcessScheduleAlgorithm {
+   public int pick(List<PCB> readyList);
+}
+
+
 public class ProcessSimulate {
     // [0, 1]
     public static int getRandom() {
@@ -53,7 +59,7 @@ public class ProcessSimulate {
     public static int runProcess(PCB pcb) {
         int runtime = getRandom(1, pcb.getTime());
         pcb.setTime(pcb.getTime() - runtime);
-        if (pcb.getTime()==0){
+        if (pcb.getTime() == 0) {
             pcb.setStatus(9);
         }
         System.out.println(pcb.getName() + " is running for: " + runtime + "ms");
@@ -85,7 +91,14 @@ public class ProcessSimulate {
         }
     }
 
-    public static void FIFO(List<PCB> pcbList) {
+    public static int FIFOPick(List<PCB> readyList) {
+        if (readyList.isEmpty()) {
+            return -1;
+        }
+        return 0;
+    }
+
+    public static void simulateContainer(List<PCB> pcbList, ProcessScheduleAlgorithm processScheduleAlgorithm) {
         List<PCB> readyList = new ArrayList<PCB>();
         List<PCB> waitList = new ArrayList<PCB>();
         List<PCB> overList = new ArrayList<PCB>();
@@ -105,9 +118,10 @@ public class ProcessSimulate {
             System.out.println("over list: ");
             showPcbList(overList);
             if (readyList.size() != 0) {
-                PCB runningPrecess = readyList.get(0);
+                int position = processScheduleAlgorithm.pick(readyList);
+                PCB runningPrecess = readyList.get(position);
                 runProcess(runningPrecess);
-                if (runningPrecess.getStatus()==9){
+                if (runningPrecess.getStatus() == 9) {
                     System.out.println(runningPrecess.getName() + " is over");
                     overList.add(runningPrecess);
                     readyList.remove(0);
@@ -117,16 +131,16 @@ public class ProcessSimulate {
         }
     }
 
-    public static void showPcbList(List<PCB> pcbList){
-        for (PCB i: pcbList){
-            System.out.print(i.getName()+": ");
-            System.out.print(i.getTime()+"ms, ");
+    public static void showPcbList(List<PCB> pcbList) {
+        for (PCB i : pcbList) {
+            System.out.print(i.getName() + ": ");
+            System.out.print(i.getTime() + "ms, ");
         }
         System.out.println();
     }
 
     public static void main(String[] args) {
         List<PCB> pcbList = init(10);
-        FIFO(pcbList);
+        simulateContainer(pcbList, ProcessSimulate::FIFOPick);
     }
 }
