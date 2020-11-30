@@ -210,8 +210,9 @@ public class DynamicAllocateRAMSimulate {
     /*
     in fact this method is also decoupled from specific algorithm.
     Other algorithms don't care about the former cursor, that's the only difference.
+    This method is the container of RamAllocateLocator
      */
-    public static void RamDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs, RamAllocateLocator ramAllocateLocator) {
+    public static void RamAllocate(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs, RamAllocateLocator ramAllocateLocator) {
         int cursor = 0;
         for (int i = 0; i < waitingJobs.size(); ) {
             int backCursor = ramAllocateLocator.locator(memoryBlockList, waitingJobs.get(i), cursor);
@@ -274,6 +275,6 @@ public class DynamicAllocateRAMSimulate {
         List<Job> jobList = initJobs(10, 1024);
 //        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitAllocate);
 //        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::bestFitAllocate);
-        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::firstFitAllocate);
+        simulateContainer(memoryBlockList, jobList, DynamicAllocateRAMSimulate::worstFitAllocate);
     }
 }
