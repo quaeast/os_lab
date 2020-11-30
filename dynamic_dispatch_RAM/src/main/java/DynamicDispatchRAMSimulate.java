@@ -65,7 +65,7 @@ public class DynamicDispatchRAMSimulate {
     public static List<Job> initJobs(int jobNum, int memoryLength) {
         List<Job> jobList = new ArrayList<Job>();
         for (int i = 0; i < jobNum; i++) {
-            jobList.add(new Job("job " + i, 0, getRandom(1, 256), -1));
+            jobList.add(new Job("job " + i, 0,memoryLength/2, -1));
         }
         return jobList;
     }
@@ -90,21 +90,6 @@ public class DynamicDispatchRAMSimulate {
         System.out.println();
     }
 
-    public static int FFLocate(List<MemoryBlock> memoryBlockList, Job job, int cursor) {
-        int currentCursor = cursor;
-        int initialCursor = cursor;
-        while (true) {
-            MemoryBlock currentBlock = memoryBlockList.get(currentCursor);
-            if (currentBlock.getFlag() == 0 && job.getNeedMemory() <= currentBlock.getLength()) {
-                return currentCursor;
-            } else {
-                currentCursor = (currentCursor + 1) % memoryBlockList.size();
-            }
-            if (currentCursor == initialCursor) {
-                return -1;
-            }
-        }
-    }
 
     public static boolean allocate(List<MemoryBlock> memoryBlockList, Job job, int allocatePosition) {
         MemoryBlock allocateBlock = memoryBlockList.get(allocatePosition);
@@ -155,25 +140,62 @@ public class DynamicDispatchRAMSimulate {
         return true;
     }
 
+    public static void running(List<MemoryBlock> memoryBlockList, List<Job> runningJobs, List<Job> overJobs) {
+        for (int i = 0; i < runningJobs.size(); ) {
+            if (getRandom() == 1) {
+                free(memoryBlockList, runningJobs.get(i));
+                overJobs.add(runningJobs.get(i));
+                runningJobs.remove(i);
+            } else {
+                i++;
+            }
+        }
+    }
+
     // FF denote for first fit
-    public static void FF(List<MemoryBlock> memoryBlockList, List<Job> jobList) {
+    // return cursor, -1 for fail
+    public static int FFLocate(List<MemoryBlock> memoryBlockList, Job job, int cursor) {
+        int currentCursor = cursor;
+        int initialCursor = cursor;
+        while (true) {
+            MemoryBlock currentBlock = memoryBlockList.get(currentCursor);
+            if (currentBlock.getFlag() == 0 && job.getNeedMemory() <= currentBlock.getLength()) {
+                return currentCursor;
+            } else {
+                currentCursor = (currentCursor + 1) % memoryBlockList.size();
+            }
+            if (currentCursor == initialCursor) {
+                return -1;
+            }
+        }
+    }
+
+    public static void FFDispatch(List<MemoryBlock> memoryBlockList, List<Job> waitingJobs, List<Job> runningJobs) {
+        int cursor = 0;
+        for (int i = 0; i < waitingJobs.size(); ) {
+            int backCursor = FFLocate(memoryBlockList, waitingJobs.get(i), cursor);
+            if (backCursor == -1) {
+                i++;
+            } else {
+                allocate(memoryBlockList, waitingJobs.get(i), backCursor);
+                cursor = ++backCursor;
+                runningJobs.add(waitingJobs.get(i));
+                waitingJobs.remove(i);
+            }
+        }
+    }
+
+    /*
+    this method's former name is FF, but I think it has decoupled from dispatch algorithm,
+    so i rename it as simulateContainer
+     */
+    public static void simulateContainer(List<MemoryBlock> memoryBlockList, List<Job> jobList) {
         int totalJobNum = jobList.size();
         List<Job> runningJobs = new ArrayList<Job>();
         List<Job> overJobs = new ArrayList<Job>();
         List<Job> waitingJobs = jobList;
         while (overJobs.size() < totalJobNum) {
-            int cursor = 0;
-            for (int i = 0; i < waitingJobs.size(); ) {
-                int backCursor = FFLocate(memoryBlockList, waitingJobs.get(i), cursor);
-                if (backCursor == -1) {
-                    i++;
-                } else {
-                    allocate(memoryBlockList, waitingJobs.get(i), backCursor);
-                    cursor = ++backCursor;
-                    runningJobs.add(waitingJobs.get(i));
-                    waitingJobs.remove(i);
-                }
-            }
+            FFDispatch(memoryBlockList, waitingJobs, runningJobs);
 
             System.out.println("***************************************");
             System.out.println("running jobs: ");
@@ -186,15 +208,7 @@ public class DynamicDispatchRAMSimulate {
             System.out.println("pre running RAM");
             showMemoryList(memoryBlockList);
 
-            for (int i = 0; i < runningJobs.size(); ) {
-                if (getRandom() == 1) {
-                    free(memoryBlockList, runningJobs.get(i));
-                    overJobs.add(runningJobs.get(i));
-                    runningJobs.remove(i);
-                } else {
-                    i++;
-                }
-            }
+            running(memoryBlockList, runningJobs, overJobs);
 
             System.out.println("post running RAM");
             showMemoryList(memoryBlockList);
@@ -205,6 +219,6 @@ public class DynamicDispatchRAMSimulate {
     public static void main(String[] args) {
         List<MemoryBlock> memoryBlockList = initMemoryBlocks(10, 1024);
         List<Job> jobList = initJobs(10, 1024);
-        FF(memoryBlockList, jobList);
+        simulateContainer(memoryBlockList, jobList);
     }
 }
